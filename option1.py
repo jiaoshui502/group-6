@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # data input
-
+# testing GitHub
 CURRENT_FLODER = Path(__file__).resolve().parent
 harris1 = pd.read_csv(CURRENT_FLODER / "HarrisPartI.csv")
 harris3 = pd.read_csv(CURRENT_FLODER / "HarrisPartIII.csv")
