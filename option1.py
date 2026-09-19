@@ -36,4 +36,78 @@ plt.title("Age-Metallicity Relation of Milky Way Globular Clusters")
 
 plt.tight_layout()
 plt.show()
-# try to change
+
+# Linear fit exclude Pal 12 (Because it's an outlier obviously)
+
+# Remove Pal 12 only from the fitting sample
+fit_data = vandenberg[
+    vandenberg["Name"] != "Pal12"
+].copy()
+
+# Linear fit: Age = slope * FeH + intercept
+slope, intercept = np.polyfit(
+    fit_data["FeH"],
+    fit_data["Age"],
+    1
+)
+
+print("Slope:", slope)
+print("Intercept:", intercept)
+
+# Generate points for the fitted line
+x_fit = np.linspace(
+    vandenberg["FeH"].min(),
+    vandenberg["FeH"].max(),
+    100
+)
+
+y_fit = slope * x_fit + intercept
+
+# Plot all clusters
+plt.figure(figsize=(10, 6))
+
+plt.errorbar(
+    vandenberg["FeH"],
+    vandenberg["Age"],
+    yerr=vandenberg["Age_err"],
+    fmt="o",
+    capsize=3
+)
+
+# Plot fit based on all clusters except Pal 12
+plt.plot(
+    x_fit,
+    y_fit,
+    label="Linear fit excluding Pal 12"
+)
+
+plt.xlabel("[Fe/H]")
+plt.ylabel("Age")
+plt.title("Age–Metallicity Relation")
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+# Calculate fitted age for all clusters
+vandenberg["Age_fit"] = (
+    slope * vandenberg["FeH"] + intercept
+)
+
+# Difference between observed age and fitted age
+vandenberg["difference"] = (
+    vandenberg["Age"] - vandenberg["Age_fit"]
+)
+
+# Select clusters whose error bars doesn't cross the fitted line
+outside_fit = vandenberg[
+    np.abs(vandenberg["difference"]) > vandenberg["Age_err"]
+].copy()
+
+print("Clusters whose age error bars do not include the fitted line:")
+print(
+    outside_fit[
+        ["#NGC", "Name", "FeH", "Age",
+         "Age_err", "Age_fit", "difference"]
+    ].sort_values("difference")
+)
