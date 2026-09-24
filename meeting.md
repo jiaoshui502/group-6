@@ -1,6 +1,6 @@
 # Meeting 1 Week 1
 **Date:** 18/09/2026
-** Participants: ** Boris, Wenze, Rachael
+**Participants:** Boris, Wenze, Rachael
 
 ## Discussion
 
