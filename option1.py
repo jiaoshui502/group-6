@@ -567,3 +567,268 @@ plt.title(
 plt.tight_layout()
 plt.show()
 
+# Dynamical analysis
+# Frenk & White (1980) / Burkert & Smith (1997)
+
+# Merge Harris position and velocity data
+dynamic_data = pd.merge(
+    harris1,
+    harris3,
+    on="ID",
+    how="inner"
+)
+
+# Keep only clusters with the required data
+dynamic_data = dynamic_data.dropna(
+    subset=["L", "B", "R_gc", "v_LSR"]
+).copy()
+
+# Modern Galactic parameters
+V0 = 229.0       # LSR circular velocity (km/s)
+R_sun = 8.178      # Sun-Galactic Centre distance (kpc)
+
+
+# Convert Galactic coordinates to radians
+
+l_rad = np.radians(dynamic_data["L"])
+b_rad = np.radians(dynamic_data["B"])
+
+# Calculate cos(A)
+
+dynamic_data["cos_A"] = (
+    np.sin(l_rad)
+    * np.cos(b_rad)
+)
+
+
+# Convert v_LSR to V_S
+# V_S is the radial velocity measured by a stationary observer
+# located at the position of the Sun.
+
+dynamic_data["V_S"] = (
+    dynamic_data["v_LSR"]
+    + V0 * dynamic_data["cos_A"]
+)
+
+# Calculate cos(Psi)
+
+R = dynamic_data["R_gc"]
+
+dynamic_data["cos_Psi"] = (
+    R_sun * dynamic_data["cos_A"]
+    /
+    np.sqrt(
+        R**2 * dynamic_data["cos_A"]**2
+        +
+        (
+            R_sun
+            - R * np.cos(b_rad) * np.cos(l_rad)
+        )**2
+    )
+)
+
+# Mean rotation velocity
+# Frenk & White estimator:
+# v_rot = sum(cos(Psi) * V_S) / sum(cos(Psi)^2)
+
+v_rot = (
+    np.sum(
+        dynamic_data["cos_Psi"]
+        * dynamic_data["V_S"]
+    )
+    /
+    np.sum(
+        dynamic_data["cos_Psi"]**2
+    )
+)
+
+# Peculiar line-of-sight velocity
+# V_S = v_rot cos(Psi) + v_pec
+
+dynamic_data["V_S_fit"] = (
+    v_rot
+    * dynamic_data["cos_Psi"]
+)
+
+dynamic_data["v_pec"] = (
+    dynamic_data["V_S"]
+    - dynamic_data["V_S_fit"]
+)
+
+
+# Line-of-sight velocity dispersion
+
+sigma_los = dynamic_data["v_pec"].std(ddof=1)
+
+
+# Uncertainty in v_rot from Frenk & White estimator
+v_rot_err = (
+    sigma_los
+    /
+    np.sqrt(
+        np.sum(dynamic_data["cos_Psi"]**2)
+    )
+)
+
+# Results
+
+print("Number of clusters used:", len(dynamic_data))
+
+print(
+    "Mean rotation velocity:",
+    v_rot,
+    "+/-",
+    v_rot_err,
+    "km/s"
+)
+
+print(
+    "Line-of-sight velocity dispersion:",
+    sigma_los,
+    "km/s"
+)
+
+
+# Plot: V_S vs cos(Psi)
+
+plt.figure(figsize=(9, 7))
+
+plt.scatter(
+    dynamic_data["cos_Psi"],
+    dynamic_data["V_S"],
+    alpha=0.7,
+    label="Globular clusters"
+)
+
+# Rotation model
+x_fit = np.linspace(-1, 1, 200)
+
+y_fit = (
+    v_rot * x_fit
+)
+
+plt.plot(
+    x_fit,
+    y_fit,
+    linewidth=2,
+    label=(
+        rf"$v_{{\rm rot}}$ = "
+        rf"{v_rot:.1f} $\pm$ {v_rot_err:.1f} km s$^{{-1}}$"
+    )
+)
+
+plt.axhline(
+    0,
+    linewidth=0.8,
+    alpha=0.4
+)
+
+plt.axvline(
+    0,
+    linewidth=0.8,
+    alpha=0.4
+)
+
+plt.xlabel(r"$\cos\Psi$")
+
+plt.ylabel(
+    r"$V_S$ (km s$^{-1}$)"
+)
+
+plt.title(
+    "Globular Cluster System Rotation"
+)
+
+plt.legend()
+plt.grid(alpha=0.3)
+plt.tight_layout()
+plt.show()
+
+# Plot: peculiar velocities
+
+plt.figure(figsize=(9, 7))
+
+plt.scatter(
+    dynamic_data["cos_Psi"],
+    dynamic_data["v_pec"],
+    alpha=0.7
+)
+
+plt.axhline(
+    0,
+    linestyle="--",
+    linewidth=1
+)
+
+plt.xlabel(r"$\cos\Psi$")
+
+plt.ylabel(
+    r"$v_{\rm pec}$ (km s$^{-1}$)"
+)
+
+plt.title(
+    "Peculiar Velocities Relative to Bulk Rotation"
+)
+
+plt.grid(alpha=0.3)
+plt.tight_layout()
+plt.show()
+
+# Clusters with largest peculiar velocities
+
+print()
+print("Largest peculiar velocities:")
+
+print(
+    dynamic_data[
+        [
+            "ID",
+            "Name",
+            "L",
+            "B",
+            "R_gc",
+            "v_LSR",
+            "V_S",
+            "cos_Psi",
+            "V_S_fit",
+            "v_pec"
+        ]
+    ]
+    .sort_values(
+        "v_pec",
+        key=abs,
+        ascending=False
+    )
+    .head(15)
+    .to_string(index=False)
+)
+
+# Dynamical anomaly measure
+
+# Signed dynamical deviation
+dynamic_data["dynamic_score"] = ( dynamic_data["v_pec"] / sigma_los)
+
+# Absolute deviation strength
+dynamic_data["dynamic_strength"] = ( np.abs(dynamic_data["dynamic_score"]))
+
+# Print clusters with the strongest dynamical deviations
+print()
+print("Strongest dynamical deviations:")
+
+print(
+    dynamic_data[
+        [
+            "ID",
+            "Name",
+            "v_pec",
+            "dynamic_score",
+            "dynamic_strength"
+        ]
+    ]
+    .sort_values(
+        "dynamic_strength",
+        ascending=False
+    )
+    .head(15)
+    .to_string(index=False)
+)
