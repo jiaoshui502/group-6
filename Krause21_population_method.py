@@ -17,20 +17,22 @@ clip = 3.0
 
 # Part 1: loading data
 folder = Path(__file__).resolve().parent
-vdb = pd.read_csv(folder / "vandenBerg_table2.csv") # ages and [Fe/H]
+krause = pd.read_csv(folder / "Krause21.csv") # ages and [Fe/H], no error bars
 
 # We give every cluster a readable name (ID) for the plot labels, in the
-# style "NGC 104". The table stores only the number "104".
-vdb["ID"] = "NGC " + vdb["#NGC"].astype(str).str.strip()
+# style "NGC 104", the same style as the Harris catalogue.
+# Krause21 writes "NGC104", so we add the space.
+krause["ID"] = krause["Object"].str.replace("NGC", "NGC ", regex=False)
 
-# Three clusters have no NGC number ("XXXX") and their names are spelled
-# differently ("Arp21" actually means Arp 2). We write them by hand.
-name_to_id = {"Arp21": "Arp 2", "Pal12": "Pal 12", "Ter8": "Terzan 8"}
-no_ngc = vdb["#NGC"].astype(str).str.strip() == "XXXX"
-vdb.loc[no_ngc, "ID"] = vdb.loc[no_ngc, "Name"].map(name_to_id)
+# Three clusters have no NGC number and are spelled differently from
+# Harris ("Ruprecht106" means Rup 106). We write them by hand.
+name_to_id = {"Ruprecht106": "Rup 106", "Terzan7": "Terzan 7", "Palomar12": "Pal 12"}
+krause["ID"] = krause["ID"].replace(name_to_id)
 
 
-# Part 2: stellar population: age-metalicity relation
+# Part 2: stellar population: age-metallicity relation, using Krause21 ages
+# This is the same method as stellar_population_method.py, applied to a
+# second, independent set of ages (61 clusters instead of 55).
 # Method:
 #   (a) Fit a straight line  Age = slope * [Fe/H] + intercept
 #       through all clusters.
@@ -41,40 +43,42 @@ vdb.loc[no_ngc, "ID"] = vdb.loc[no_ngc, "Name"].map(name_to_id)
 #       clusters more than clip sigma away and fit again.
 #   (d) sigma = typical size of the residuals of the remaining clusters.
 #       Score (z) = residual / sigma = how many sigma from the trend.
-#   (e) |z| > AGE_CUT means the cluster stands out.
+#   (e) |z| > age_cut means the cluster stands out.
+# Krause21 gives no age error bars, so every cluster counts equally in the
+# fit, and sigma mixes measurement error with the real spread of ages.
 
 # (a) first straight-line fit using every cluster
-slope, intercept = np.polyfit(vdb["FeH"], vdb["Age"], 1)
-vdb["age_resid"] = vdb["Age"] - (slope * vdb["FeH"] + intercept)
+slope, intercept = np.polyfit(krause["FeH"], krause["Age"], 1)
+krause["age_resid"] = krause["Age"] - (slope * krause["FeH"] + intercept)
 
 # (c) remove extreme clusters and fit again
-sigma_first = vdb["age_resid"].std()
-kept = vdb["age_resid"].abs() < clip * sigma_first
-print("Removed before the final age fit:", vdb.loc[~kept, "ID"].tolist())
+sigma_first = krause["age_resid"].std()
+kept = krause["age_resid"].abs() < clip * sigma_first
+print("Removed before the final age fit:", krause.loc[~kept, "ID"].tolist())
 
-slope, intercept = np.polyfit(vdb.loc[kept, "FeH"], vdb.loc[kept, "Age"], 1)
-vdb["age_resid"] = vdb["Age"] - (slope * vdb["FeH"] + intercept)
+slope, intercept = np.polyfit(krause.loc[kept, "FeH"], krause.loc[kept, "Age"], 1)
+krause["age_resid"] = krause["Age"] - (slope * krause["FeH"] + intercept)
 
 # (d) sigma from the clusters that were kept, then a score for every cluster
-age_sigma = vdb.loc[kept, "age_resid"].std()
-vdb["age_z"] = vdb["age_resid"] / age_sigma
+age_sigma = krause.loc[kept, "age_resid"].std()
+krause["age_z"] = krause["age_resid"] / age_sigma
 
 # (e) some flags
-vdb["age_younger"] = vdb["age_z"] < -age_cut
-vdb["age_older"] = vdb["age_z"] > age_cut
-vdb["age_standout"] = vdb["age_younger"] | vdb["age_older"]
+krause["age_younger"] = krause["age_z"] < -age_cut
+krause["age_older"] = krause["age_z"] > age_cut
+krause["age_standout"] = krause["age_younger"] | krause["age_older"]
 
 print()
-print("Age-metallicity Relation")
+print("Age-metallicity Relation (Krause21 ages)")
 print(f"  trend: Age = {slope:.2f} * [Fe/H] + {intercept:.2f}  (Gyr)")
 print(f"  typical scatter (sigma) = {age_sigma:.2f} Gyr")
-print(f"  clusters that stand out: {vdb['age_standout'].sum()} of {len(vdb)}"
-      f"   (about {len(vdb) * math.erfc(age_cut / math.sqrt(2)):.1f} expected by chance)")
-print(vdb.loc[vdb["age_standout"], ["ID", "FeH", "Age", "age_z"]]
+print(f"  clusters that stand out: {krause['age_standout'].sum()} of {len(krause)}"
+      f"   (about {len(krause) * math.erfc(age_cut / math.sqrt(2)):.1f} expected by chance)")
+print(krause.loc[krause["age_standout"], ["ID", "FeH", "Age", "age_z"]]
       .sort_values("age_z").round(2).to_string(index=False))
 
 # Labels for the plot:
-# Making sure close by labels alternate between four positions so that 
+# Making sure close by labels alternate between four positions so that
 # they do not sit on top of each other.
 # 4 marker locations: (right, up), (right, down), (left, up), (left, down).
 
@@ -93,33 +97,33 @@ def label_points(x_values, y_values, names):
         )
 
 
-# Assignment task 1: Identify potentially accreted cluester using stellar
-# population method
-# Rule: candidate that are much younger than the age-metallicity trend.
+# Assignment task 1: Identify potentially accreted clusters using the
+# stellar population method with Krause21 ages
+# Rule: candidates are clusters much younger than the age-metallicity trend.
 # We count only younger because accreted clusters tend to be younger
 # at a given [Fe/H]. Clusters that are older than the trend still stand
 # out in the plot, but they are more likely just old Milky Way clusters,
 # so they are not called candidates.
 
-candidates = vdb[vdb["age_younger"]].sort_values("age_z")
+candidates = krause[krause["age_younger"]].sort_values("age_z")
 
 print()
-print("TASK 1: POTENTIALLY ACCRETED CLUSTERS (younger than the trend)")
-print(f"  {len(candidates)} candidates out of {len(vdb)} clusters with an age")
+print("TASK 1: POTENTIALLY ACCRETED CLUSTERS (younger than the trend, Krause21 ages)")
+print(f"  {len(candidates)} candidates out of {len(krause)} clusters with an age")
 print(candidates[["ID", "FeH", "Age", "age_z"]].round(2).to_string(index=False))
 
 
 # plot
-out = vdb[vdb["age_standout"]].sort_values("FeH") # clusters that stand out
+out = krause[krause["age_standout"]].sort_values("FeH") # clusters that stand out
 
 plt.figure(figsize=(10, 6))
 
-# every cluster with its age error bar
-plt.errorbar(vdb["FeH"], vdb["Age"], yerr=vdb["Age_err"], fmt="o",
-             color="tab:blue", alpha=0.6, capsize=3, label="Clusters")
+# every cluster (no error bars, because Krause21 does not give any)
+plt.scatter(krause["FeH"], krause["Age"], color="tab:blue", alpha=0.6,
+            label="Clusters (no error bars)")
 
 # the trend line and the band of +-age cut sigma around it
-x_line = np.linspace(vdb["FeH"].min(), vdb["FeH"].max(), 100)
+x_line = np.linspace(krause["FeH"].min(), krause["FeH"].max(), 100)
 y_line = slope * x_line + intercept
 plt.plot(x_line, y_line, color="black", label="Trend (straight-line fit)")
 plt.fill_between(x_line, y_line - age_cut * age_sigma, y_line + age_cut * age_sigma,
@@ -132,7 +136,7 @@ label_points(out["FeH"], out["Age"], out["ID"])
 
 plt.xlabel("[Fe/H]")
 plt.ylabel("Age (Gyr)")
-plt.title("Age-Metallicity Relation of Milky Way Globular Clusters")
+plt.title("Age-Metallicity Relation of Milky Way Globular Clusters (Krause21 Ages)")
 plt.legend()
 plt.tight_layout()
 plt.show()
