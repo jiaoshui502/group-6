@@ -1,4 +1,4 @@
-# Week 1
+# Week 1 Meeting
 
 **Date:** 18/09/2026
 **Participants:** Boris, Wenze, Rachael
@@ -16,7 +16,7 @@
 1. Discuss methods and split work
 2. Review code written and discuss feasibility
 
-# Week 2
+# Week 2 Meeting
 
 **Date:** 24/09/2026
 **Participants:** Boris, Wenze, Rachael
@@ -37,4 +37,24 @@
 
 1. Share the progress and results of each other's task.
 2. Discuss if the 3rd method is valid.
+
+
+
+# Week 3 Meeting
+
+**Date:** 01/10/2026 **Participants:** Boris, Wenze, Rachael
+
+## Discussions
+
+1. Discussed progress and results from everyone's code
+2. Discussed which given data have not been used, and if we can use them
+3. Re-assigned work so that the work split matches everyone's progress
+4. Discussed the feasibility of potential 3rd or 4th method
+
+
+
+## Next week's agenda:
+
+1. Discuss new results from unused data if any are significant
+2. Discuss the feasibility of additional methods base on the code results
 
