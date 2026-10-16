@@ -26,7 +26,7 @@ min_members = 3 # smallest group that we count, because a pair can be by chance
 n_shuffle = 1000 # number of shuffles for the chance test, to see how often a group as big as the real one appears
 
 
-# Part 1: loading data
+# loading data
 folder = Path(__file__).resolve().parent # the folder this script is in, where the data files are
 harris1 = pd.read_csv(folder / "HarrisPartI.csv") # positions
 harris3 = pd.read_csv(folder / "HarrisPartIII.csv") # velocities
@@ -49,7 +49,7 @@ krause["ID"] = krause["ID"].replace(
     {"Ruprecht106": "Rup 106", "Terzan7": "Terzan 7", "Palomar12": "Pal 12"}) 
 
 
-# Part 2: tests A and B, age-metallicity relation
+# tests A and B, age-metallicity relation
 # Same method as stellar_population_method.py (A, van den Berg ages) and Krause21_population_method.py (B, Krause21 ages): 
 # straight-line fit of Age against [Fe/H], remove clusters more than clip sigma from it, fit again, and give every cluster a score
 # z = (distance from the line) / sigma. A cluster is a candidate if it is younger than the trend by more than sigma_cut (z < -sigma_cut)
@@ -75,7 +75,7 @@ vdb["age_z"] = age_scores(vdb) # test A scores
 krause["age_z"] = age_scores(krause) # test B scores
 
 
-# Part 3: test C, rotation
+# test C, rotation
 # Same method as dynamics_method.py: one rotation speed v_rot is fitted to all clusters (V_S = v_rot * cos(Psi)), and every cluster gets a score
 # z = (V_S - v_rot * cos(Psi)) / sigma. A cluster is a candidate if |z| > sigma_cut (it is moving away from the rotation trend by more than sigma_cut).
 
@@ -107,7 +107,7 @@ dyn["v_pec"] = dyn["V_S"] - v_rot * dyn["cos_Psi"]
 dyn["dyn_z"] = dyn["v_pec"] / dyn["v_pec"].std()
 
 
-# Part 4: test D: groups in position and velocity
+# test D: groups in position and velocity
 # A dwarf galaxy that falls into the Milky Way brings its own clusters, and they may stay close together and keep the velocity of the dwarf galaxy
 # they will form a tight group in position and velocity. Clusters that formed in the Milky Way have much less chance to form such groups, because
 # the inner Galaxy is so crowded. So we only search clusters further than outer_r from the Galactic centre.
@@ -166,10 +166,10 @@ for _, members in outer[outer["group_size"] >= min_members].groupby("group"):
           .round(2).to_string(index=False)) # 2 decimals
 print(f"  A group of {biggest} or more clusters appeared in " f"{100 * p_chance:.1f}% of {n_shuffle} shuffles") # the chance probability, as a percentage 
 
-# Part 5: one table with every test for every cluster in the Harris catalogue:
-#   Trueflagged by the test
-#   False = tested, not flagged
-#   NaN = the test was not possible (no age, no velocity)
+# one table with every test for every cluster in the Harris catalogue:
+# True = flagged by the test
+# False = tested, not flagged
+# NaN = the test was not possible (no age, no velocity)
 
 
 tests = pd.DataFrame({
