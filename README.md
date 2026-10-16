@@ -4,7 +4,7 @@ PHYS3116 computational assignment,  Option 1.
 
 Group 6: Jianing(Boris) Mao, Wenze Du, Manyan(Rachael) Li.
 
-/Some of the Milky Way's globular clusters formed in the Galaxy itself, and others were brought in by dwarf galaxies that merged with it. This project uses ages, metallicities ([Fe/H]), positions and line-of-sight velocities to find clusters that may have been accreted. It then tests the cluster system as a whole to estimate how many clusters were accreted and what that says about how the Milky Way formed to answer questions ;mentioned in the assignment brief.
+Some of the Milky Way's globular clusters formed in the Galaxy itself, and others were brought in by dwarf galaxies that merged with it. This project uses ages, metallicities ([Fe/H]), positions and line-of-sight velocities to find clusters that may have been accreted. It then tests the cluster system as a whole to estimate how many clusters were accreted and what that says about how the Milky Way formed to answer questions ;mentioned in the assignment brief.
 
 ## Quick Start
 
@@ -12,7 +12,7 @@ You need Python 3 with numpy, pandas, matplotlib and scipy.
 
 Each script runs on its own:
 
-- It reads the CSV files from its own folder, so you can run it from any directory.
+- It reads the CSV files from its own folder, so you can run it from any directory
 - It prints its results to the terminal.
 - It opens its figures one at a time. Close each window to continue to the next plot.
 
