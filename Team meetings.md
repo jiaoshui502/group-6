@@ -58,3 +58,20 @@
 1. Discuss new results from unused data if any are significant
 2. Discuss the feasibility of additional methods base on the code results
 
+
+
+# Week 5 Meeting
+
+**Date:** 15/10/2026 **Participants:** Boris, Wenze, Rachael
+
+## Discussions
+
+1. Discussed final results from everyone's code
+2. Discussed the work split for presentation
+3. Scheduled time for presentation recording that works for everyone
+4. Discused materials(slides with plots, most likely) to be used for the presentation
+
+## Next week's agenda:
+
+1. Record the presentation
+
