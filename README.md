@@ -33,10 +33,6 @@ Each script runs on its own:
 | [age.py](age.py)                           | An alternative weighted age fit.                                                                                                            |
 | [sptial analysis.py](sptial%20analysis.py) | Face-on and edge-on maps of the cluster positions.                                                                                          |
 
-                               |
-
-
-
 
 ## Other files
 
