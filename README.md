@@ -29,20 +29,11 @@ Each script runs on its own:
 | [HBage.py](HBage.py)                                           | Correlates each cluster's offset from the age trend with its offset from the HB trend. This tests "age as the second parameter".                                                                                                | `hb-age-residuals.png`                                               |
 | [combined_candidates.py](combined_candidates.py)               | Repeats tests A to C and adds test D, a friends-of-friends search for groups of outer-halo clusters that are close in both position and velocity, with a shuffle test for chance. Joins all four tests into one candidate list. | `candidates-by-test.png`, `outer-halo-sky.png`                       |
 | [formation_analysis.py](formation_analysis.py)                 | Tests the cluster system as a whole: rotation by metallicity, age offset against R_gc, two age-metallicity branches, and the estimate of how many clusters are accreted.                                                        | `two-branches.png`, `age-offset-vs-rgc.png`, `rotation-by-group.png` |
-
-
-
-
-## Earlier and exploratory scripts (not used for the final results)
-
-These scripts are kept for the record. 
-
-
-| Script                                     | Notes                                                                                                                                       |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | [option1.py](option1.py)                   | Our first combined script, written before the work was split into the separate method scripts above. It has been replaced by those scripts. |
 | [age.py](age.py)                           | An alternative weighted age fit.                                                                                                            |
 | [sptial analysis.py](sptial%20analysis.py) | Face-on and edge-on maps of the cluster positions.                                                                                          |
+
+                               |
 
 
 
